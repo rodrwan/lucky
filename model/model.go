@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rodrwan/categorizer/ngrams"
+	"github.com/rodrwan/lucky/ngrams"
 )
 
 // Samples asdfs
