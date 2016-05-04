@@ -1,0 +1,162 @@
+94#Ajuste por cierre de cuenta
+12#Gimnasio
+2#Bonos
+86#Intereses
+35#Jardín
+13#Ropa Deportiva
+78#Articulos de Farmacia
+65#Arriendo
+10#Equipos y Accesorios Deportivos
+46#Peluquería / Depilación
+14#Arancel Colegio
+1#Gasto Indefinido
+82#Devolución de Dinero
+3#Ganancias de Inversiones
+76#Ingreso Indefinido
+5#Servicios Prestados
+6#Sueldos
+84#Traspaso desde Cuenta Externa
+96#Recepción de Crédito/Préstamo
+95#Pension/Mesada Recibida
+77#Traspaso Entre Cuentas
+79#Cafetería
+97#Pago a Cuenta Corriente
+7#Bares y Discotheques
+8#Mercadería / Supermercado
+24#Cine / Teatro
+15#Arancel Universidad
+41#Compra de Automóviles
+17#Cursos de Capacitación
+18#Jardín Infantil
+19#Libros
+20#Materiales Educacionales
+21#Sala Cuna
+74#Atracciones Turísticas
+22#Uniformes
+23#Casino de Juegos / Lotería
+27#Giro Redbanc
+71#Telefonía Fija
+34#Empleada Doméstica
+26#Comisión Banco
+28#Pago de Crédito
+33#Electrodomésticos
+58#Seguro de Auto
+32#Decoración Interior
+37#Tecnología / Electrónica
+31#Arreglos
+56#Bencina / Diesel
+85#Seguro Bancario
+70#Internet
+38#Acciones
+39#AFP
+40#APV
+73#Inversión en Negocios
+42#Depósito a Plazo
+43#Fondos Mutuos
+44#Propiedades
+87#Impuestos
+80#Donaciones
+83#Seguro de Vida
+59#Servicio Técnico / Taller de Auto
+45#Mascotas
+47#Regalos Entregados
+48#Ropa
+49#Consultas Médicas
+51#Hospitalizaciones
+52#Isapre
+53#Medicamentos
+54#Seguro Catastrófico
+68#Gastos Comunes
+66#Calefacción
+72#Electricidad
+90#Envíos
+93#Gas
+69#Seguro del Hogar
+81#Préstamos de Dinero a Otros
+16#Cuota Crédito Educacional
+88#Otros Servicios
+55#Arriendo de Auto
+64#Agua
+89#Autopista / Tag
+36#Lavandería
+57#Metro / Transporte Público
+62#Bus / Tren
+63#Hoteles
+60#Taxi
+61#Avión
+11#Eventos Deportivos
+9#Restaurantes
+25#Juguetes / Videojuegos
+4#Regalos Recibidos
+75#Reembolsos
+92#Pago desde Tarjeta de Crédito
+30#Pago a Tarjeta de Crédito
+91#Pago desde Línea de Crédito
+50#Exámenes
+29#Pago a Línea de Crédito
+98#Pago desde Cuenta Corriente
+100#Snacks
+99#Bebidas Alcohólicas
+105#Admisiones Deportivas
+106#Actividades Escolares
+107#Matrícula
+109#Apps
+110#Consolas
+111#Música
+113#Películas y Series
+114#Artículos para Bebé
+115#Enfermera
+116#Pañales
+117#Niñera
+118#Ropa de Bebé
+139#Telefonía Celular / Móvil
+140#TV Cable
+130#Tratamientos Médicos
+158#Cementerio
+147#Bicicleta
+129#Dentista / Ortodoncista
+138#Alarma
+155#Vacaciones
+148#Cuota Crédito Automotriz
+154#Cruceros
+149#Estacionamiento
+142#Impresiones
+143#Legales
+144#Materiales de Oficina
+145#Notaría
+146#Publicidad / Marketing
+150#Motocicleta
+151#Pago de Partes
+152#Permiso de Circulación
+153#Revisión Técnica
+159#Accesorios y Repuestos
+67#Cuota Dividendo Crédito Hipotecario
+141#Servicios Online
+123#Accesorios
+125#Artículos para Adultos
+128#Calzado
+126#Cigarrillos / Hierbas
+101#Maquillaje
+160#Inversiones en Cumplo
+102#Perfumes
+103#Spa y Masajes
+104#Tratamientos de Belleza
+108#Viaje de Estudios
+119#Contribuciones
+120#Gastos Comunes
+121#Parafina
+122#Tratamiento de Agua
+156#Ferretería
+131#Seguro de Cesantía
+132#Seguro de Estudios
+133#Seguro de Fraude
+134#Seguro de Hogar
+135#Seguro de Salud
+136#Seguro de Viaje
+137#Seguro Profesional
+157#Isapre
+127#Periódico / Diario
+161#Heladería
+162#Panadería
+170#Capital de Crédito
+171#Ajuste por Crédito
