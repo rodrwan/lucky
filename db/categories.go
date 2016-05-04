@@ -55,10 +55,6 @@ func Categories(db *sqlx.DB) (map[uint]string, error) {
 		fmt.Fprintln(w, sc)
 	}
 
-	for rows.Next() {
-
-	}
-
 	w.Flush()
 	return m, nil
 }
