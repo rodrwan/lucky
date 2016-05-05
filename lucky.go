@@ -1,4 +1,4 @@
-package main
+package lucky
 
 import (
 	"flag"
@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 	"github.com/rodrwan/lucky/db"
 	"github.com/rodrwan/lucky/model"
 )
