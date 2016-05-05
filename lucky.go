@@ -54,7 +54,6 @@ func (newModel *Lucky) Fit() {
 	newModel.Model = m
 	newModel.CatNum = c
 	fmt.Println(">> Ready to categorize.")
-	return
 }
 
 // Predict ...
