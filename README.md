@@ -1,4 +1,9 @@
-### Training data:
+# Lucky
+
+To train a new classifier you should create two files and pass it to params. After train the classifier, two files are created to speed up the training fase, (model.bin and categories.bin)
+
+## Example files
+### Training file:
 ```text
 120#Pago Pesos TEF
 26#COMISION MENSUAL POR MANTENCION
@@ -7,8 +12,18 @@
 89#Compra Internet COSTANERA NORTE
 ...
 ```
+### Labels file:
+```text
+94#Ajuste por cierre de cuenta
+12#Gimnasio
+2#Bonos
+86#Intereses
+35#Jardín
+13#Ropa Deportiva
+...
+```
 
-### Basic model
+## Basic model
 ```go
 type Samples struct {
     Ngram    string
@@ -21,7 +36,7 @@ type Samples struct {
 }
 ```
 
-### Setup structure
+## Setup structure
 ```go
 type Lucky struct {
     Model            map[string]*model.Samples
@@ -33,7 +48,7 @@ type Lucky struct {
 }
 ```
 
-### Public response
+## Public response
 ```go
 type BestCategory struct {
   ID    uint    // category id
@@ -47,3 +62,5 @@ type BestCategory struct {
 Fit() void
 Predict(test string) (*model.BestCategory)
 ```
+
+To see the classifier in action see `lucky_test.go`
