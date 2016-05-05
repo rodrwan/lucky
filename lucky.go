@@ -1,4 +1,4 @@
-package lucky
+package main
 
 import (
 	"flag"
@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"github.com/rodrwan/lucky/db"
 	"github.com/rodrwan/lucky/model"
 )
 
 var (
-	path   = flag.String("train", "training_data.txt", "Training data")
-	labels = flag.String("labels", "labels.txt", "Labels sample")
+	path   = flag.String("train", "training_data.txt", "Training data path")
+	labels = flag.String("labels", "labels.txt", "Labels sample path")
 	dbURL  = flag.String("dburl", "database-url", "DB url connection")
 )
 
