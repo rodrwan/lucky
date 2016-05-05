@@ -1,12 +1,12 @@
 package lucky
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/rodrwan/lucky/db"
 	"github.com/rodrwan/lucky/model"
 )
@@ -14,7 +14,6 @@ import (
 var (
 	path   = flag.String("train", "training_data.txt", "Training data path")
 	labels = flag.String("labels", "labels.txt", "Labels sample path")
-	dbURL  = flag.String("dburl", "database-url", "DB url connection")
 )
 
 // Lucky ...
@@ -24,7 +23,6 @@ type Lucky struct {
 	CatStr           map[uint]string
 	LabelsPath       string
 	TrainingDataPath string
-	URL              string
 }
 
 // Fit ...
@@ -39,11 +37,10 @@ func (newModel *Lucky) Fit() {
 		newModel.TrainingDataPath = *path
 	}
 	fmt.Printf("> Loading %s\n", newModel.TrainingDataPath)
-	if newModel.URL == "" {
-		newModel.URL = *dbURL
+	err := newModel.getCategories()
+	if err != nil {
+		log.Fatalln(err)
 	}
-	fmt.Printf("> Getting data from %s...\n", newModel.URL[0:10])
-	newModel.getCategories()
 
 	fmt.Println(">> Fit model.")
 	start := time.Now()
@@ -65,18 +62,16 @@ func (newModel *Lucky) Predict(test string) (res *model.BestCategory) {
 	return
 }
 
-func (newModel *Lucky) getCategories() {
+func (newModel *Lucky) getCategories() error {
+	start := time.Now()
 	if model.Exists(newModel.LabelsPath) {
 		newModel.CatStr = db.Load(newModel.LabelsPath)
+		elapsed := time.Since(start)
+		log.Printf("Load labels took %s", elapsed)
+		return nil
 	}
 
-	start := time.Now()
-	conn, _ := sqlx.Open("postgres", newModel.URL)
-	cats, _ := db.Categories(conn)
-	elapsed := time.Since(start)
-	log.Printf("Load data took %s", elapsed)
-	newModel.CatStr = cats
-	return
+	return errors.New("can't load labels file")
 }
 
 func main() {
