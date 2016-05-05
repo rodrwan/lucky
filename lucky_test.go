@@ -38,10 +38,4 @@ func TestLucky(t *testing.T) {
 		t.Errorf("TrainingDataPath should be \"\", got %v", newModel.TrainingDataPath)
 	}
 	fmt.Println(" OK")
-	fmt.Printf("\t> URL")
-	if newModel.URL != "" {
-		fmt.Println(" Fail")
-		t.Errorf("URL should be \"\", got %v", newModel.URL)
-	}
-	fmt.Println(" OK")
 }
