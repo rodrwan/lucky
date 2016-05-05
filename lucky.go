@@ -14,6 +14,7 @@ import (
 var (
 	path   = flag.String("train", "training_data.txt", "Training data path")
 	labels = flag.String("labels", "labels.txt", "Labels sample path")
+	verb   = flag.Bool("verbose", false, "Verbose mode true to display")
 )
 
 // Lucky ...
@@ -23,30 +24,45 @@ type Lucky struct {
 	CatStr           map[uint]string
 	LabelsPath       string
 	TrainingDataPath string
+	verbose          bool
 }
 
 // Fit ...
 func (newModel *Lucky) Fit() {
 	flag.Parse()
-	fmt.Println(">> Init model.")
+	if !newModel.verbose {
+		newModel.verbose = *verb
+	}
+	if newModel.verbose {
+		fmt.Println(">> Init model.")
+	}
 	if newModel.LabelsPath == "" {
 		newModel.LabelsPath = *labels
 	}
-	fmt.Printf("> Loading %s\n", newModel.LabelsPath)
+	if newModel.verbose {
+		fmt.Printf("> Loading %s\n", newModel.LabelsPath)
+	}
 	if newModel.TrainingDataPath == "" {
 		newModel.TrainingDataPath = *path
 	}
-	fmt.Printf("> Loading %s\n", newModel.TrainingDataPath)
+	if newModel.verbose {
+		fmt.Printf("> Loading %s\n", newModel.TrainingDataPath)
+	}
+
 	err := newModel.getCategories()
 	if err != nil {
 		log.Fatalln(err)
 	}
+	if newModel.verbose {
+		fmt.Println(">> Fit model.")
+	}
 
-	fmt.Println(">> Fit model.")
 	start := time.Now()
 	m, c := model.Fit(newModel.TrainingDataPath)
 	elapsed := time.Since(start)
-	log.Printf("Fit took %s\n\n", elapsed)
+	if newModel.verbose {
+		log.Printf("Fit took %s\n\n", elapsed)
+	}
 
 	newModel.Model = m
 	newModel.CatNum = c
@@ -67,18 +83,11 @@ func (newModel *Lucky) getCategories() error {
 	if model.Exists(newModel.LabelsPath) {
 		newModel.CatStr = db.Load(newModel.LabelsPath)
 		elapsed := time.Since(start)
-		log.Printf("Load labels took %s", elapsed)
+		if *verb {
+			log.Printf("Load labels took %s", elapsed)
+		}
 		return nil
 	}
 
 	return errors.New("can't load labels file")
-}
-
-func main() {
-	flag.Parse()
-	newModel := new(Lucky)
-	newModel.Fit()
-	desc := "ADIDAS PARQUE ARAUCO"
-	best := newModel.Predict(desc)
-	fmt.Println(best)
 }
