@@ -87,6 +87,7 @@ func TestClassifier(t *testing.T) {
 		"PAGO EN LINEA VTR",
 		"PAGO EN LINEA AUTOPISTA COSTANERA NORTE",
 		"compra normal todo juegos cl",
+		"Transf otro Bco FINCIERO SPA",
 	}
 
 	for _, desc := range stringCase {
