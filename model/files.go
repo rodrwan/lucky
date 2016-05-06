@@ -1,8 +1,11 @@
 package model
 
 import (
+	"bufio"
 	"encoding/gob"
 	"os"
+	"strconv"
+	"strings"
 )
 
 // SaveModel ...
@@ -56,4 +59,30 @@ func Exists(file string) bool {
 	}
 
 	return false
+}
+
+// LoadLabels ...
+func LoadLabels(subCatPath string) map[uint]string {
+	f, err := os.Open(subCatPath)
+	if err != nil {
+		panic("cant open labels file")
+	}
+	defer f.Close()
+
+	m := make(map[uint]string)
+	scanner := bufio.NewScanner(f)
+	scanner.Split(bufio.ScanLines)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		splitedStr := strings.Split(line, "#")
+		id, name := splitedStr[0], splitedStr[1]
+		i, err := strconv.Atoi(id)
+		if err != nil {
+			panic("cannot convert string to int")
+		}
+		m[uint(i)] = name
+	}
+
+	return m
 }
