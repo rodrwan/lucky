@@ -82,36 +82,7 @@ func Fit(path string, procs int) map[string]*Sample {
 	return newSamples.m
 }
 
-func bestOption(votes map[uint]uint, freq map[float64]uint) uint {
-	var maxFreqKey uint = 1
-	var maximum uint
-	var maxKey uint
-	maxFreq := 0.0
-	equals := true
-
-	for key, value := range freq {
-		if key > maxFreq {
-			maxFreq = key
-			maxFreqKey = value
-		}
-	}
-
-	for key, count := range votes {
-		if count > maximum {
-			maximum = count
-			maxKey = key
-		}
-
-		if count == maximum {
-			equals = false
-		}
-	}
-
-	if equals {
-		return maxFreqKey
-	}
-	return maxKey
-}
+// Prediction fase ...
 
 // BestCategory ...
 type BestCategory struct {
@@ -122,21 +93,64 @@ type BestCategory struct {
 
 // Best ...
 type Best struct {
-	Prob  float64
-	Key   uint
-	Ngram string
+	Prob  map[string]float64
+	count uint
 }
 
-func (b *Best) resetValues() {
-	b.Prob = 0.0
-	b.Key = 0
-	b.Ngram = ""
+func (b *Best) setValues(prob float64, ngram string) {
+	b.Prob[ngram] = prob
+	b.count++
 }
 
-func (b *Best) setValues(prob float64, key uint, ngram string) {
-	b.Prob = prob
-	b.Key = key
-	b.Ngram = ngram
+func maxVote(votes map[uint]uint) (uint, bool) {
+	var maximum uint
+	equals := false
+	var maxKey uint
+
+	for key, count := range votes {
+		last := maximum
+		if count > maximum {
+			maximum = count
+			maxKey = key
+		}
+
+		if last == count {
+			equals = true
+		}
+	}
+
+	return maxKey, equals
+}
+
+func maxFreq(freq map[float64]uint) uint {
+	var maxFreqKey uint = 1
+	maxFreq := 0.0
+
+	tmp := make(map[float64]uint)
+	for key, value := range freq {
+		tmp[key] += value
+	}
+
+	for key, value := range tmp {
+		if key > maxFreq {
+			maxFreq = key
+			maxFreqKey = value
+		}
+	}
+
+	return maxFreqKey
+}
+
+func bestOption(votes map[uint]uint, freq map[float64]uint) uint {
+	// if the keys have the same number of votes, then we use
+	// key frequency ratio to tiebreaker this equality
+	maxKey, equals := maxVote(votes)
+
+	if equals {
+		return maxFreq(freq)
+	}
+
+	return maxKey
 }
 
 // Predict function to get best category
@@ -145,24 +159,13 @@ func Predict(m map[string]*Sample, test string, cats map[uint]string) *BestCateg
 	freq := make(map[float64]uint)
 	votes := make(map[uint]uint)
 
-	bestOpt := &Best{
-		Prob:  0.0,
-		Key:   0,
-		Ngram: "",
-	}
-
 	for _, value := range total {
 		sample := m[value]
 		if sample != nil {
 			maxKey := sample.maxKey()
 			prob := sample.Classes[maxKey]
-			bestOpt.setValues(prob, maxKey, value)
-			freq[sample.Freq] = maxKey
+			freq[prob] = maxKey
 		}
-		if bestOpt.Prob > 0.0 {
-			votes[bestOpt.Key]++
-		}
-		bestOpt.resetValues()
 	}
 
 	best := bestOption(votes, freq)
@@ -170,6 +173,6 @@ func Predict(m map[string]*Sample, test string, cats map[uint]string) *BestCateg
 	return &BestCategory{
 		ID:    best,
 		Name:  cats[best],
-		Score: bestOpt.Prob,
+		Score: 0.0, // TODO: implement score
 	}
 }
