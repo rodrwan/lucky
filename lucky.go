@@ -3,8 +3,8 @@ package lucky
 import (
 	"errors"
 	"flag"
-	"fmt"
 	"log"
+	"runtime"
 	"time"
 
 	"github.com/rodrwan/lucky/db"
@@ -19,73 +19,69 @@ var (
 
 // Lucky ...
 type Lucky struct {
-	Model            map[string]*model.Samples
-	CatNum           map[uint]float64
+	Model            map[string]*model.Sample
 	CatStr           map[uint]string
 	LabelsPath       string
 	TrainingDataPath string
-	verbose          bool
+	Verbose          bool
 }
 
 // Fit ...
 func (newModel *Lucky) Fit() {
+	maxProcs := runtime.NumCPU()
+	log.Printf("Available CPU: %d\n", maxProcs)
+	runtime.GOMAXPROCS(maxProcs)
+
 	flag.Parse()
-	if !newModel.verbose {
-		newModel.verbose = *verb
+	if !newModel.Verbose {
+		newModel.Verbose = *verb
 	}
-	if newModel.verbose {
-		fmt.Println(">> Init model.")
+	if newModel.Verbose {
+		log.Println(">> Init model.")
 	}
 	if newModel.LabelsPath == "" {
 		newModel.LabelsPath = *labels
 	}
-	if newModel.verbose {
-		fmt.Printf("> Loading %s\n", newModel.LabelsPath)
+	if newModel.Verbose {
+		log.Printf("> Loading %s\n", newModel.LabelsPath)
 	}
 	if newModel.TrainingDataPath == "" {
 		newModel.TrainingDataPath = *path
 	}
-	if newModel.verbose {
-		fmt.Printf("> Loading %s\n", newModel.TrainingDataPath)
+	if newModel.Verbose {
+		log.Printf("> Loading %s\n", newModel.TrainingDataPath)
 	}
 
 	err := newModel.getCategories()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if newModel.verbose {
-		fmt.Println(">> Fit model.")
+	if newModel.Verbose {
+		log.Println(">> Fit model.")
 	}
 
 	start := time.Now()
-	m, c := model.Fit(newModel.TrainingDataPath)
+	m := model.Fit(newModel.TrainingDataPath, maxProcs)
 	elapsed := time.Since(start)
-	if newModel.verbose {
+	if newModel.Verbose {
 		log.Printf("Fit took %s\n\n", elapsed)
 	}
 
 	newModel.Model = m
-	newModel.CatNum = c
-	fmt.Println(">> Ready to categorize.")
+	log.Println(">> Ready to categorize.")
 }
 
 // Predict ...
 func (newModel *Lucky) Predict(test string) (res *model.BestCategory) {
 	m := newModel.Model
 	cats := newModel.CatStr
-	c := newModel.CatNum
-	res = model.Predict(m, test, cats, c)
+	res = model.Predict(m, test, cats)
 	return
 }
 
 func (newModel *Lucky) getCategories() error {
-	start := time.Now()
 	if model.Exists(newModel.LabelsPath) {
 		newModel.CatStr = db.Load(newModel.LabelsPath)
-		elapsed := time.Since(start)
-		if *verb {
-			log.Printf("Load labels took %s", elapsed)
-		}
 		return nil
 	}
 
