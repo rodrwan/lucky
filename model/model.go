@@ -165,6 +165,7 @@ func Predict(m map[string]*Sample, test string, cats map[uint]string) *BestCateg
 			maxKey := sample.maxKey()
 			prob := sample.Classes[maxKey]
 			freq[prob] = maxKey
+			votes[maxKey]++
 		}
 	}
 
