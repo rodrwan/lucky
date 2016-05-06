@@ -28,10 +28,6 @@ type Lucky struct {
 
 // Fit ...
 func (newModel *Lucky) Fit() {
-	maxProcs := runtime.NumCPU()
-	log.Printf("Available CPU: %d\n", maxProcs)
-	runtime.GOMAXPROCS(maxProcs)
-
 	if !newModel.AsPkg {
 		flag.Parse()
 	}
@@ -62,6 +58,11 @@ func (newModel *Lucky) Fit() {
 		log.Println(">> Fit model.")
 	}
 
+	// enable all cpu to speedup model fit
+	maxProcs := runtime.NumCPU()
+	log.Printf("Available CPU: %d\n", maxProcs)
+	runtime.GOMAXPROCS(maxProcs)
+
 	start := time.Now()
 	m := model.Fit(newModel.TrainingDataPath, maxProcs)
 	elapsed := time.Since(start)
@@ -71,6 +72,8 @@ func (newModel *Lucky) Fit() {
 
 	newModel.Model = m
 	log.Println(">> Ready to categorize.")
+	// just leave 1 cpu to the rest of work
+	runtime.GOMAXPROCS(1)
 }
 
 // Predict ...
