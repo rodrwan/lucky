@@ -1,138 +1,85 @@
 package model
 
 import (
-	"bufio"
-	"fmt"
-	"log"
-	"math"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/rodrwan/lucky/ngrams"
 )
 
-// Samples asdfs
-type Samples struct {
-	Ngram    string
-	Freq     float64
-	Classes  map[uint]float64
-	Probs    map[uint]float64
-	Maximum  float64
-	Minimum  float64
-	Weighted bool
-}
-
-func (s *Samples) add() {
-	s.Freq++
-}
-
-func (s *Samples) maxKey() (maxKey uint) {
-	var maximum float64
-	for key, value := range s.Probs {
-		if value > maximum {
-			maximum = value
-			maxKey = key
-		}
-	}
-	return
-}
-
-func (s *Samples) toTfIdf(catsLen float64) {
-	if !s.Weighted {
-		sampLen := float64(len(s.Classes))
-		div := catsLen / sampLen
-		idf := math.Log10(1.0 + div)
-
-		for key, tf := range s.Classes {
-			s.Probs[key] = tf * idf
-			if s.Probs[key] > s.Maximum {
-				s.Maximum = s.Probs[key]
-			}
-			if s.Probs[key] < s.Minimum {
-				s.Minimum = s.Probs[key]
-			}
-		}
-	}
-}
-
-// feature scaling 0 .. 1
-func (s *Samples) scale() (prob float64) {
-	if !s.Weighted {
-		maximum := s.Maximum
-		minimum := s.Minimum
-		divisor := maximum - minimum
-
-		for key, value := range s.Probs {
-			prob = 1.0
-			if divisor > 0 {
-				prob = (value - minimum) / divisor
-			}
-			s.Probs[key] = prob
-		}
-		s.Weighted = true
-	}
-
-	return
-}
-
 // Fit create a map of ngrams from file
-func Fit(path string) (map[string]*Samples, map[uint]float64) {
+func Fit(path string, procs int) map[string]*Sample {
 	modelPath := "model.bin"
-	catsPath := "categories.bin"
-	if Exists(modelPath) && Exists(catsPath) {
-		m, c := Load(modelPath, catsPath)
-		return m, c
+	if Exists(modelPath) {
+		m := Load(modelPath)
+		return m
 	}
 
-	m := make(map[string]*Samples)
-	cats := make(map[uint]float64)
+	newSamples := NewSet()
+	newCats := NewCats()
+
 	inFile, _ := os.Open(path)
 	defer inFile.Close()
-	scanner := bufio.NewScanner(inFile)
-	scanner.Split(bufio.ScanLines)
 
-	for scanner.Scan() {
-		desc := scanner.Text()
-		splitedStr := strings.Split(desc, "#")
-		category, description := splitedStr[0], splitedStr[1]
-		total := ngrams.Make(description, 3)
-		i, err := strconv.Atoi(category)
-		for _, value := range total {
-			cats[uint(i)]++
-			if err != nil {
-				log.Fatalln(err)
-				return nil, nil
-			}
+	fileBytes, _ := ioutil.ReadFile(path)
+	fileAsString := string(fileBytes)
+	lines := strings.Split(fileAsString, "\n")
+	lines = lines[0 : len(lines)-1]
+	totalLines := len(lines)
+	chunkSize := totalLines / procs
+	rest := totalLines % procs
+	wg := &sync.WaitGroup{}
 
-			if _, ok := m[value]; ok {
-				m[value].Classes[uint(i)]++
-				m[value].add()
-			} else {
-				// init
-				m[value] = &Samples{
-					Ngram:    value,
-					Freq:     1.0,
-					Classes:  make(map[uint]float64),
-					Probs:    make(map[uint]float64),
-					Maximum:  0.0,
-					Minimum:  100000000.0,
-					Weighted: false,
+	for idx := 0; idx < procs; idx++ {
+		chunk := lines[chunkSize*(idx) : chunkSize*(idx+1)+rest]
+		wg.Add(1)
+
+		go func(chunk []string) {
+			for _, line := range chunk {
+				splitedStr := strings.Split(line, "#")
+				category, description := splitedStr[0], splitedStr[1]
+				total := ngrams.Make(description, 3)
+				i, err := strconv.Atoi(category)
+				if err != nil {
+					continue
 				}
-				m[value].Classes[uint(i)]++
-			}
-		}
-	}
 
-	catsLen := float64(len(cats))
-	for _, sample := range m {
+				for _, value := range total {
+					newCats.Add(uint(i))
+					ok := newSamples.Has(value)
+					if ok {
+						newSamples.Update(value, uint(i))
+					} else {
+						// init
+						sample := &Sample{
+							Ngram:    value,
+							Freq:     1.0,
+							Classes:  make(map[uint]float64),
+							Probs:    make(map[uint]float64),
+							Maximum:  0.0,
+							Minimum:  100000000.0,
+							Weighted: false,
+						}
+						newSamples.Add(value, sample, uint(i))
+					}
+				}
+			}
+			wg.Done()
+		}(chunk)
+	}
+	wg.Wait()
+	catsLen := float64(len(newCats.cats))
+
+	for _, sample := range newSamples.m {
 		sample.toTfIdf(catsLen)
 		sample.scale()
 	}
 
-	SaveModel(modelPath, m)
-	SaveCats(catsPath, cats)
-	return m, cats
+	SaveModel(modelPath, newSamples.m)
+	return newSamples.m
 }
 
 func bestOption(votes map[uint]uint, freq map[float64]uint) uint {
@@ -154,7 +101,8 @@ func bestOption(votes map[uint]uint, freq map[float64]uint) uint {
 			maximum = count
 			maxKey = key
 		}
-		if count != maximum {
+
+		if count == maximum {
 			equals = false
 		}
 	}
@@ -192,8 +140,7 @@ func (b *Best) setValues(prob float64, key uint, ngram string) {
 }
 
 // Predict function to get best category
-func Predict(m map[string]*Samples, test string, cats map[uint]string, c map[uint]float64) *BestCategory {
-	fmt.Printf("test: %s\n", test)
+func Predict(m map[string]*Sample, test string, cats map[uint]string) *BestCategory {
 	total := ngrams.Make(test, 3)
 	freq := make(map[float64]uint)
 	votes := make(map[uint]uint)
