@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -57,30 +55,4 @@ func Categories(db *sqlx.DB) (map[uint]string, error) {
 
 	w.Flush()
 	return m, nil
-}
-
-// Load ...
-func Load(subCatPath string) map[uint]string {
-	f, err := os.Open(subCatPath)
-	if err != nil {
-		panic("cant open sub category file")
-	}
-	defer f.Close()
-
-	m := make(map[uint]string)
-	scanner := bufio.NewScanner(f)
-	scanner.Split(bufio.ScanLines)
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		splitedStr := strings.Split(line, "#")
-		id, name := splitedStr[0], splitedStr[1]
-		i, err := strconv.Atoi(id)
-		if err != nil {
-			panic("cannot convert string to int")
-		}
-		m[uint(i)] = name
-	}
-
-	return m
 }
