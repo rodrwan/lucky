@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/rodrwan/lucky/db"
 	"github.com/rodrwan/lucky/model"
 )
 
@@ -81,7 +80,7 @@ func (newModel *Lucky) Predict(test string) (res *model.BestCategory) {
 
 func (newModel *Lucky) getCategories() error {
 	if model.Exists(newModel.LabelsPath) {
-		newModel.CatStr = db.Load(newModel.LabelsPath)
+		newModel.CatStr = model.LoadLabels(newModel.LabelsPath)
 		return nil
 	}
 
