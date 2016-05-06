@@ -23,6 +23,7 @@ type Lucky struct {
 	LabelsPath       string
 	TrainingDataPath string
 	Verbose          bool
+	AsPkg            bool
 }
 
 // Fit ...
@@ -31,7 +32,9 @@ func (newModel *Lucky) Fit() {
 	log.Printf("Available CPU: %d\n", maxProcs)
 	runtime.GOMAXPROCS(maxProcs)
 
-	flag.Parse()
+	if !newModel.AsPkg {
+		flag.Parse()
+	}
 	if !newModel.Verbose {
 		newModel.Verbose = *verb
 	}
