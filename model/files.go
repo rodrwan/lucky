@@ -6,7 +6,7 @@ import (
 )
 
 // SaveModel ...
-func SaveModel(file string, m map[string]*Samples) {
+func SaveModel(file string, m map[string]*Sample) {
 	f, err := os.Create(file)
 	if err != nil {
 		panic("cant open file")
@@ -34,7 +34,7 @@ func SaveCats(file string, cats map[uint]float64) {
 }
 
 // Load ...
-func Load(modelPath string, catsPath string) (m map[string]*Samples, cats map[uint]float64) {
+func Load(modelPath string) (m map[string]*Sample) {
 	f, err := os.Open(modelPath)
 	if err != nil {
 		panic("cant open model")
@@ -46,18 +46,7 @@ func Load(modelPath string, catsPath string) (m map[string]*Samples, cats map[ui
 		panic("cant decode model")
 	}
 
-	f, err = os.Open(catsPath)
-	if err != nil {
-		panic("cant open categories")
-	}
-	defer f.Close()
-
-	enc = gob.NewDecoder(f)
-	if err = enc.Decode(&cats); err != nil {
-		panic("cant decode categories")
-	}
-
-	return m, cats
+	return m
 }
 
 // Exists ...
