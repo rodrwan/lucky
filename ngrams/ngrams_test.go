@@ -118,6 +118,27 @@ func TestMake(t *testing.T) {
 	}
 }
 
+var testCases2 = []struct {
+	phrases string
+	want    string
+	equal   bool
+}{
+	{
+		phrases: "compra normal memits parque arauco",
+		want:    "memits parque arauco",
+		equal:   true,
+	},
+}
+
+func TestNormalize(t *testing.T) {
+	for _, c := range testCases2 {
+		got := normalize(c.phrases)
+		if got != c.want {
+			t.Errorf("normalize(%q) == %q, want %q", c.phrases, got, c.want)
+		}
+	}
+}
+
 func testEq(lhs, rhs []string) bool {
 	if lhs == nil && rhs == nil {
 		return true

@@ -16,6 +16,7 @@ func normalize(line string) string {
 	str := r.ReplaceAllString(clean, " ")
 	str = strings.Replace(str, "compra", "", -1)
 	str = strings.Replace(str, "pago", "", -1)
+	str = strings.Replace(str, "normal", "", -1)
 	str = strings.TrimSpace(str)
 	return re.ReplaceAllString(str, " ")
 }
