@@ -8,15 +8,20 @@ import (
 	"github.com/kennygrant/sanitize"
 )
 
-func normalize(line string) string {
+func normalize(line string, words []string) string {
 	r := regexp.MustCompile("[^\\p{L}]+")
 	re := regexp.MustCompile("[\\s+]")
+	relen := regexp.MustCompile("[^\\w{2}$]+")
 	lower := strings.ToLower(line)
 	clean := sanitize.Accents(lower)
 	str := r.ReplaceAllString(clean, " ")
-	str = strings.Replace(str, "compra", "", -1)
-	str = strings.Replace(str, "pago", "", -1)
-	str = strings.Replace(str, "normal", "", -1)
+	str = relen.ReplaceAllString(str, " ")
+
+	if len(words) > 0 {
+		for _, word := range words {
+			str = strings.Replace(str, word, "", -1)
+		}
+	}
 	str = strings.TrimSpace(str)
 	return re.ReplaceAllString(str, " ")
 }
@@ -26,8 +31,8 @@ func stopWords(line string) string {
 }
 
 // Make creates N-grams of a given string
-func Make(str string, N int) (result []string) {
-	arr := strings.Fields("$ " + stopWords(normalize(str)) + " $")
+func Make(str string, N int, word []string) (result []string) {
+	arr := strings.Fields("$ " + stopWords(normalize(str, word)) + " $")
 	words := len(arr)
 
 	for k := 0; k < N; k++ {
