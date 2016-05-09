@@ -24,6 +24,7 @@ type Lucky struct {
 	TrainingDataPath string
 	Verbose          bool
 	AsPkg            bool
+	InvalidWords     []string
 }
 
 // Fit ...
@@ -64,7 +65,7 @@ func (newModel *Lucky) Fit() {
 	runtime.GOMAXPROCS(maxProcs)
 
 	start := time.Now()
-	m := model.Fit(newModel.TrainingDataPath, maxProcs)
+	m := model.Fit(newModel.TrainingDataPath, maxProcs, newModel.InvalidWords)
 	elapsed := time.Since(start)
 	if newModel.Verbose {
 		log.Printf("Fit took %s\n\n", elapsed)
@@ -80,7 +81,7 @@ func (newModel *Lucky) Fit() {
 func (newModel *Lucky) Predict(test string) (res *model.BestCategory) {
 	m := newModel.Model
 	cats := newModel.CatStr
-	res = model.Predict(m, test, cats)
+	res = model.Predict(m, test, cats, newModel.InvalidWords)
 	return
 }
 
