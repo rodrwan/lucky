@@ -11,7 +11,7 @@ import (
 )
 
 // Fit create a map of ngrams from file
-func Fit(path string, procs int) map[string]*Sample {
+func Fit(path string, procs int, words []string) map[string]*Sample {
 	modelPath := "model.bin"
 	if Exists(modelPath) {
 		m := Load(modelPath)
@@ -41,7 +41,7 @@ func Fit(path string, procs int) map[string]*Sample {
 			for _, line := range chunk {
 				splitedStr := strings.Split(line, "#")
 				category, description := splitedStr[0], splitedStr[1]
-				total := ngrams.Make(description, 3)
+				total := ngrams.Make(description, 3, words)
 				i, err := strconv.Atoi(category)
 				if err != nil {
 					continue
@@ -154,8 +154,8 @@ func bestOption(votes map[uint]uint, freq map[float64]uint) uint {
 }
 
 // Predict function to get best category
-func Predict(m map[string]*Sample, test string, cats map[uint]string) *BestCategory {
-	total := ngrams.Make(test, 3)
+func Predict(m map[string]*Sample, test string, cats map[uint]string, words []string) *BestCategory {
+	total := ngrams.Make(test, 3, words)
 	freq := make(map[float64]uint)
 	votes := make(map[uint]uint)
 
@@ -164,6 +164,7 @@ func Predict(m map[string]*Sample, test string, cats map[uint]string) *BestCateg
 		if sample != nil {
 			maxKey := sample.maxKey()
 			prob := sample.Classes[maxKey]
+			// fmt.Printf("%s\t%f\t%f\t%d\t%s\n", value, prob, sample.Freq, maxKey, cats[maxKey])
 			freq[prob] = maxKey
 			votes[maxKey]++
 		}
