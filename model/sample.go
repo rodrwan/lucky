@@ -7,7 +7,8 @@ type Sample struct {
 	Ngram    string
 	Freq     float64
 	Classes  map[uint]float64
-	Probs    map[uint]float64
+	Prob     float64
+	Tfidf    map[uint]float64
 	Maximum  float64
 	Minimum  float64
 	Weighted bool
@@ -17,9 +18,10 @@ func (s *Sample) add() {
 	s.Freq++
 }
 
+// this method return max category key looking for best tfidf value.
 func (s *Sample) maxKey() (maxKey uint) {
 	var maximum float64
-	for key, value := range s.Probs {
+	for key, value := range s.Classes {
 		if value > maximum {
 			maximum = value
 			maxKey = key
@@ -28,6 +30,22 @@ func (s *Sample) maxKey() (maxKey uint) {
 	return
 }
 
+// General probability of 's' according to it general frequency
+// and which category seen this ngram.
+func (s *Sample) toProb() {
+	for _, value := range s.Classes {
+		s.Prob = value / s.Freq
+		if s.Prob > s.Maximum {
+			s.Maximum = s.Prob
+		}
+		if s.Prob < s.Minimum {
+			s.Minimum = s.Prob
+		}
+	}
+	return
+}
+
+// Tfidf value of sample s for each class detected
 func (s *Sample) toTfIdf(catsLen float64) {
 	if !s.Weighted {
 		sampLen := float64(len(s.Classes))
@@ -35,33 +53,14 @@ func (s *Sample) toTfIdf(catsLen float64) {
 		idf := math.Log10(1.0 + div)
 
 		for key, tf := range s.Classes {
-			s.Probs[key] = tf * idf
-			if s.Probs[key] > s.Maximum {
-				s.Maximum = s.Probs[key]
+			tf = 1 + math.Log(tf)
+			s.Tfidf[key] = tf * idf // * s.Prob
+			if s.Tfidf[key] > s.Maximum {
+				s.Maximum = s.Tfidf[key]
 			}
-			if s.Probs[key] < s.Minimum {
-				s.Minimum = s.Probs[key]
+			if s.Tfidf[key] < s.Minimum {
+				s.Minimum = s.Tfidf[key]
 			}
 		}
 	}
-}
-
-// feature scaling 0 .. 1
-func (s *Sample) scale() (prob float64) {
-	if !s.Weighted {
-		maximum := s.Maximum
-		minimum := s.Minimum
-		divisor := maximum - minimum
-
-		for key, value := range s.Probs {
-			prob = 1.0
-			if divisor > 0 {
-				prob = (value - minimum) / divisor
-			}
-			s.Probs[key] = prob
-		}
-		s.Weighted = true
-	}
-
-	return
 }
