@@ -16,8 +16,8 @@ var (
 	verb   = flag.Bool("verbose", false, "Verbose mode true to display")
 )
 
-// Lucky ...
-type Lucky struct {
+// Config ...
+type Config struct {
 	Model            map[string]*model.Sample
 	CatStr           map[uint]string
 	LabelsPath       string
@@ -28,34 +28,34 @@ type Lucky struct {
 }
 
 // Fit ...
-func (newModel *Lucky) Fit() {
-	if !newModel.AsPkg {
+func (config *Config) Fit() {
+	if !config.AsPkg {
 		flag.Parse()
 	}
-	if !newModel.Verbose {
-		newModel.Verbose = *verb
+	if !config.Verbose {
+		config.Verbose = *verb
 	}
-	if newModel.Verbose {
+	if config.Verbose {
 		log.Println(">> Init model.")
 	}
-	if newModel.LabelsPath == "" {
-		newModel.LabelsPath = *labels
+	if config.LabelsPath == "" {
+		config.LabelsPath = *labels
 	}
-	if newModel.Verbose {
-		log.Printf("> Loading %s\n", newModel.LabelsPath)
+	if config.Verbose {
+		log.Printf("> Loading %s\n", config.LabelsPath)
 	}
-	if newModel.TrainingDataPath == "" {
-		newModel.TrainingDataPath = *path
+	if config.TrainingDataPath == "" {
+		config.TrainingDataPath = *path
 	}
-	if newModel.Verbose {
-		log.Printf("> Loading %s\n", newModel.TrainingDataPath)
+	if config.Verbose {
+		log.Printf("> Loading %s\n", config.TrainingDataPath)
 	}
 
-	err := newModel.getCategories()
+	err := config.getCategories()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if newModel.Verbose {
+	if config.Verbose {
 		log.Println(">> Fit model.")
 	}
 
@@ -65,29 +65,29 @@ func (newModel *Lucky) Fit() {
 	runtime.GOMAXPROCS(maxProcs)
 
 	start := time.Now()
-	m := model.Fit(newModel.TrainingDataPath, maxProcs, newModel.InvalidWords)
+	m := model.Fit(config.TrainingDataPath, maxProcs, config.InvalidWords)
 	elapsed := time.Since(start)
-	if newModel.Verbose {
+	if config.Verbose {
 		log.Printf("Fit took %s\n\n", elapsed)
 	}
 
-	newModel.Model = m
+	config.Model = m
 	log.Println(">> Ready to categorize.")
 	// just leave 1 cpu to the rest of work
 	runtime.GOMAXPROCS(1)
 }
 
 // Predict ...
-func (newModel *Lucky) Predict(test string) (res *model.BestCategory) {
-	m := newModel.Model
-	cats := newModel.CatStr
-	res = model.Predict(m, test, cats, newModel.InvalidWords)
+func (config *Config) Predict(test string) (res *model.BestCategory) {
+	m := config.Model
+	cats := config.CatStr
+	res = model.Predict(m, test, cats, config.InvalidWords)
 	return
 }
 
-func (newModel *Lucky) getCategories() error {
-	if model.Exists(newModel.LabelsPath) {
-		newModel.CatStr = model.LoadLabels(newModel.LabelsPath)
+func (config *Config) getCategories() error {
+	if model.Exists(config.LabelsPath) {
+		config.CatStr = model.LoadLabels(config.LabelsPath)
 		return nil
 	}
 
