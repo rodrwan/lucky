@@ -2,6 +2,10 @@ package ngrams
 
 import "testing"
 
+var invalidWords = []string{
+	"compra",
+	"normal",
+}
 var testCases = []struct {
 	phrases string
 	count   int
@@ -111,7 +115,7 @@ var testCases = []struct {
 
 func TestMake(t *testing.T) {
 	for _, c := range testCases {
-		got := Make(c.phrases, c.count)
+		got := Make(c.phrases, c.count, invalidWords)
 		if testEq(got, c.want) != c.equal {
 			t.Errorf("Make(%q, %d) == %q, want %q", c.phrases, c.count, got, c.want)
 		}
@@ -132,7 +136,7 @@ var testCases2 = []struct {
 
 func TestNormalize(t *testing.T) {
 	for _, c := range testCases2 {
-		got := normalize(c.phrases)
+		got := normalize(c.phrases, invalidWords)
 		if got != c.want {
 			t.Errorf("normalize(%q) == %q, want %q", c.phrases, got, c.want)
 		}
