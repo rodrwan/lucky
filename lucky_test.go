@@ -3,15 +3,18 @@ package lucky
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
+	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/rodrwan/lucky/model"
 )
 
 func TestCatStr(t *testing.T) {
-	newModel := new(Lucky)
+	newModel := new(Config)
 	actual := newModel.CatStr
 	if actual != nil {
 		t.Errorf("CatStr should be nil, got %v", actual)
@@ -19,7 +22,7 @@ func TestCatStr(t *testing.T) {
 }
 
 func TestLabelsPath(t *testing.T) {
-	newModel := new(Lucky)
+	newModel := new(Config)
 	expected := ""
 	actual := newModel.LabelsPath
 	if actual != expected {
@@ -27,7 +30,7 @@ func TestLabelsPath(t *testing.T) {
 	}
 }
 func TestModel(t *testing.T) {
-	newModel := new(Lucky)
+	newModel := new(Config)
 	actual := newModel.Model
 	if actual != nil {
 		t.Errorf("Model should be nil, got %v", actual)
@@ -35,7 +38,7 @@ func TestModel(t *testing.T) {
 }
 
 func TestTrainingDataPath(t *testing.T) {
-	newModel := new(Lucky)
+	newModel := new(Config)
 	expected := ""
 	actual := newModel.TrainingDataPath
 	if actual != expected {
@@ -44,7 +47,7 @@ func TestTrainingDataPath(t *testing.T) {
 }
 
 func TestVerbose(t *testing.T) {
-	newModel := new(Lucky)
+	newModel := new(Config)
 	expected := false
 	actual := newModel.Verbose
 	if !actual == expected {
@@ -53,12 +56,11 @@ func TestVerbose(t *testing.T) {
 }
 
 func TestClassifier(t *testing.T) {
-	newModel := new(Lucky)
+	newModel := new(Config)
 	newModel.Verbose = true
-	newModel.TrainingDataPath = "training_data2.txt"
+	newModel.TrainingDataPath = "base.txt"
 
 	newModel.Fit()
-	// cats := newModel.CatStr
 	newModel.InvalidWords = []string{
 	// "compra",
 	// "pago",
@@ -74,12 +76,14 @@ func TestClassifier(t *testing.T) {
 	// "condes",
 	// "conde",
 	// "alto",
+	// "maipu",
 	}
 	desc := "ADIDAS PARQUE ARAUCO"
 	best := newModel.Predict(desc)
-	fmt.Println(best.Name)
-	if best.ID != 13 {
-		t.Errorf(" Should return ID equal to 13, got %d", best.ID)
+
+	var expected uint = 13
+	if best.ID != expected {
+		t.Errorf(" Should return ID equal to %d, got %d", expected, best.ID)
 	}
 	if newModel.Model == nil {
 		t.Errorf(" Should not be equal to nil, got %v", newModel.Model)
@@ -175,7 +179,7 @@ func TestClassifier(t *testing.T) {
 	// 	},
 	// 	{
 	// 		phrases:    "Transf otro Bco FINCIERO SPA",
-	// 		categoryID: 82,
+	// 		categoryID: 6,
 	// 	},
 	// 	{
 	// 		phrases:    "PAGO BELSPORT S.A. PARQUE ARAU",
@@ -190,7 +194,7 @@ func TestClassifier(t *testing.T) {
 	// 		categoryID: 8,
 	// 	},
 	// }
-
+	//
 	// for _, test := range testCases {
 	// 	best := newModel.Predict(test.phrases)
 	// 	fmt.Printf("Description: %s\n", test.phrases)
@@ -203,28 +207,44 @@ func TestClassifier(t *testing.T) {
 	// 	fmt.Println()
 	// }
 
-	path := "training_data2.txt"
-	fileBytes, _ := ioutil.ReadFile(path)
+	maxProcs := runtime.NumCPU()
+	log.Printf("Available CPU: %d\n", maxProcs)
+	runtime.GOMAXPROCS(maxProcs)
+
+	testPath := "test.txt"
+	fileBytes, _ := ioutil.ReadFile(testPath)
 	fileAsString := string(fileBytes)
 	lines := strings.Split(fileAsString, "\n")
-	lines = lines[0 : len(lines)-1]
+	lines = lines[0:len(lines)]
+	totalLines := len(lines)
+	chunkSize := totalLines / maxProcs
+	rest := totalLines % maxProcs
+	wg := &sync.WaitGroup{}
 
 	accuracy := 0.0
-	for _, line := range lines {
-		splitedStr := strings.Split(line, "#")
-		category, description := splitedStr[0], splitedStr[1]
-		best := newModel.Predict(description)
-		i, err := strconv.Atoi(category)
-		if err != nil {
-			continue
-		}
-		if best.ID == uint(i) {
-			accuracy += 1.0
-		}
-		// else {
-		// 	fmt.Printf("Description: %s\nExpected: %s\nActual: %s\n\n", description, cats[best.ID], cats[uint(i)])
-		// }
-	}
+	for idx := 0; idx < maxProcs; idx++ {
+		chunk := lines[chunkSize*(idx) : chunkSize*(idx+1)+rest]
+		wg.Add(1)
 
+		go func(chunk []string) {
+			for _, line := range chunk {
+				if len(line) == 0 {
+					continue
+				}
+				splitedStr := strings.Split(line, "#")
+				category, description := splitedStr[0], splitedStr[1]
+				best := newModel.Predict(description)
+				i, err := strconv.Atoi(category)
+				if err != nil {
+					continue
+				}
+				if best.ID == uint(i) {
+					accuracy += 1.0
+				}
+			}
+			wg.Done()
+		}(chunk)
+	}
+	wg.Wait()
 	fmt.Printf("Accuracy: %03.2f%%\n", 100*(accuracy/float64(len(lines))))
 }
