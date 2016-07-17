@@ -25,6 +25,7 @@ type Config struct {
 	Verbose          bool
 	AsPkg            bool
 	InvalidWords     []string
+	Threshold        float64
 }
 
 // Fit ...
@@ -61,7 +62,7 @@ func (config *Config) Fit() {
 
 	// enable all cpu to speedup model fit
 	maxProcs := runtime.NumCPU()
-	log.Printf("Available CPU: %d\n", maxProcs)
+	// log.Printf("Available CPU: %d\n", maxProcs)
 	runtime.GOMAXPROCS(maxProcs)
 
 	start := time.Now()
@@ -72,7 +73,7 @@ func (config *Config) Fit() {
 	}
 
 	config.Model = m
-	log.Println(">> Ready to categorize.")
+	// log.Println(">> Ready to categorize.")
 	// just leave 1 cpu to the rest of work
 	runtime.GOMAXPROCS(1)
 }
@@ -81,7 +82,7 @@ func (config *Config) Fit() {
 func (config *Config) Predict(test string) (res *model.BestCategory) {
 	m := config.Model
 	cats := config.CatStr
-	res = model.Predict(m, test, cats, config.InvalidWords)
+	res = model.Predict(m, test, cats, config.InvalidWords, config.Threshold)
 	return
 }
 

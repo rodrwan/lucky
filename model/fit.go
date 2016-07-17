@@ -44,7 +44,7 @@ func Fit(path string, procs int, words []string) map[string]*Sample {
 				}
 				splitedStr := strings.Split(line, "#")
 				category, description := splitedStr[0], splitedStr[1]
-				total := ngrams.Make(description, 3, words)
+				total := ngrams.MakeN(description, 3, words)
 				i, err := strconv.Atoi(category)
 				if err != nil {
 					continue
@@ -74,83 +74,11 @@ func Fit(path string, procs int, words []string) map[string]*Sample {
 		}(chunk)
 	}
 	wg.Wait()
-	// catsLen := float64(len(newCats.cats))
 
 	for _, sample := range newSamples.m {
 		sample.toProb()
-		// sample.toTfIdf(catsLen)
 	}
 
 	SaveModel(modelPath, newSamples.m)
 	return newSamples.m
-}
-
-// Prediction fase ...
-
-// BestCategory ...
-type BestCategory struct {
-	ID    uint    // category id
-	Name  string  // category name
-	Score float64 // category prob
-}
-
-// Best ...
-type Best struct {
-	Prob  map[string]float64
-	count uint
-}
-
-func (b *Best) setValues(prob float64, ngram string) {
-	b.Prob[ngram] = prob
-	b.count++
-}
-
-func maxVote(votes map[uint]*Vote) (uint, float64) {
-	var maxKey uint
-	var maximum float64
-
-	for key, vote := range votes {
-		if vote.Score > maximum {
-			maximum = vote.Score
-			maxKey = key
-		}
-	}
-
-	return maxKey, maximum
-}
-
-// Vote ...
-type Vote struct {
-	Count uint
-	Score float64
-}
-
-// Predict function to get best category
-func Predict(m map[string]*Sample, test string, cats map[uint]string, words []string) *BestCategory {
-	total := ngrams.Make(test, 3, words)
-	votes := make(map[uint]*Vote)
-
-	for _, value := range total {
-		sample := m[value]
-		if sample != nil {
-			maxKey := sample.maxKey()
-			// prob := sample.Tfidf[maxKey]
-			if _, ok := votes[maxKey]; ok {
-				votes[maxKey].Count++
-				votes[maxKey].Score += (sample.Prob)
-			} else {
-				votes[maxKey] = &Vote{
-					Count: 1,
-					Score: sample.Prob,
-				}
-			}
-		}
-	}
-	best, maxProb := maxVote(votes)
-
-	return &BestCategory{
-		ID:    best,
-		Name:  cats[best],
-		Score: maxProb,
-	}
 }
