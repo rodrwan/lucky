@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/rodrwan/lucky/model"
 )
@@ -57,9 +58,9 @@ func TestVerbose(t *testing.T) {
 
 func TestClassifier(t *testing.T) {
 	newModel := new(Config)
-	newModel.Verbose = true
-	newModel.TrainingDataPath = "base.txt"
-
+	newModel.Verbose = false
+	newModel.TrainingDataPath = "train.txt"
+	newModel.Threshold = 0.0
 	newModel.Fit()
 	newModel.InvalidWords = []string{
 	// "compra",
@@ -78,6 +79,7 @@ func TestClassifier(t *testing.T) {
 	// "alto",
 	// "maipu",
 	}
+
 	desc := "ADIDAS PARQUE ARAUCO"
 	best := newModel.Predict(desc)
 
@@ -91,122 +93,129 @@ func TestClassifier(t *testing.T) {
 	if !model.Exists("model.bin") {
 		t.Errorf(" Should create model.bin, got %v", model.Exists("model.bin"))
 	}
-	fmt.Println()
 
-	// var testCases = []struct {
-	// 	phrases    string
-	// 	categoryID uint
-	// }{
-	// 	{
-	// 		phrases:    "compra normal ripley parque arauco",
-	// 		categoryID: 48,
-	// 	},
-	// 	{
-	// 		phrases:    "compra normal paris parque arauco",
-	// 		categoryID: 48,
-	// 	},
-	// 	{
-	// 		phrases:    "compra normal falabella alto las condes",
-	// 		categoryID: 48,
-	// 	},
-	// 	{
-	// 		phrases:    "COMPRA SUBWAY METRO ESC",
-	// 		categoryID: 9,
-	// 	},
-	// 	{
-	// 		phrases:    "Giro en Cajero Automático",
-	// 		categoryID: 27,
-	// 	},
-	// 	{
-	// 		phrases:    "COMPRA NIKE SHOP ALTO LA",
-	// 		categoryID: 13,
-	// 	},
-	// 	{
-	// 		phrases:    "COMPRA LIQUIDOS LA REINA",
-	// 		categoryID: 99,
-	// 	},
-	// 	{
-	// 		phrases:    "COMPRA CASTANO LAS CONDE",
-	// 		categoryID: 162,
-	// 	},
-	// 	{
-	// 		phrases:    "COMPRA DONER HOUSE",
-	// 		categoryID: 9,
-	// 	},
-	// 	{
-	// 		phrases:    "PAC Seguro Frau 000005500832946",
-	// 		categoryID: 85,
-	// 	},
-	// 	{
-	// 		phrases:    "COMPRA PIZZA PIZZA COLON",
-	// 		categoryID: 9,
-	// 	},
-	// 	{
-	// 		phrases:    "COMPRA OK MARKET SAN PAS",
-	// 		categoryID: 8,
-	// 	},
-	// 	{
-	// 		phrases:    "COMPRA OK MARKET SUB CEN",
-	// 		categoryID: 8,
-	// 	},
-	// 	{
-	// 		phrases:    "COMPRA VIVE SNACK MOVIST",
-	// 		categoryID: 100,
-	// 	},
-	// 	{
-	// 		phrases:    "COMPRA BARBAZUL",
-	// 		categoryID: 7,
-	// 	},
-	// 	{
-	// 		phrases:    "COMPRA CASTANO LAS CONDE",
-	// 		categoryID: 162,
-	// 	},
-	// 	{
-	// 		phrases:    "COMPRA FUENTE CHILENA AP",
-	// 		categoryID: 9,
-	// 	},
-	// 	{
-	// 		phrases:    "PAGO EN LINEA VTR",
-	// 		categoryID: 70,
-	// 	},
-	// 	{
-	// 		phrases:    "PAGO EN LINEA AUTOPISTA COSTANERA NORTE",
-	// 		categoryID: 89,
-	// 	},
-	// 	{
-	// 		phrases:    "compra normal todo juegos cl",
-	// 		categoryID: 25,
-	// 	},
-	// 	{
-	// 		phrases:    "Transf otro Bco FINCIERO SPA",
-	// 		categoryID: 6,
-	// 	},
-	// 	{
-	// 		phrases:    "PAGO BELSPORT S.A. PARQUE ARAU",
-	// 		categoryID: 13,
-	// 	},
-	// 	{
-	// 		phrases:    "COPEC MAIPU 29336",
-	// 		categoryID: 56,
-	// 	},
-	// 	{
-	// 		phrases:    "JUMBO MAIPU SUPERMERCADO",
-	// 		categoryID: 8,
-	// 	},
-	// }
-	//
-	// for _, test := range testCases {
-	// 	best := newModel.Predict(test.phrases)
-	// 	fmt.Printf("Description: %s\n", test.phrases)
-	// 	fmt.Printf("Category: %d -> %s\n", best.ID, best.Name)
-	// 	if best.ID != test.categoryID {
-	// 		t.Errorf("Description %s has failed\n", test.phrases)
-	// 		t.Errorf("Category: %s\n", best.Name)
-	// 		t.Errorf(" Should best.ID be equal to %d, got %d", test.categoryID, best.ID)
-	// 	}
-	// 	fmt.Println()
-	// }
+	var testCases = []struct {
+		phrases    string
+		categoryID uint
+	}{
+		{
+			phrases:    "ADIDAS PARQUE ARAUCO",
+			categoryID: 48,
+		},
+		{
+			phrases:    "compra normal ripley parque arauco",
+			categoryID: 48,
+		},
+		{
+			phrases:    "compra normal paris parque arauco",
+			categoryID: 48,
+		},
+		{
+			phrases:    "compra normal falabella alto las condes",
+			categoryID: 48,
+		},
+		{
+			phrases:    "COMPRA SUBWAY METRO ESC",
+			categoryID: 9,
+		},
+		{
+			phrases:    "Giro en Cajero Automático",
+			categoryID: 27,
+		},
+		{
+			phrases:    "COMPRA NIKE SHOP ALTO LA",
+			categoryID: 13,
+		},
+		{
+			phrases:    "COMPRA LIQUIDOS LA REINA",
+			categoryID: 99,
+		},
+		{
+			phrases:    "COMPRA CASTANO LAS CONDE",
+			categoryID: 100,
+		},
+		{
+			phrases:    "COMPRA DONER HOUSE",
+			categoryID: 9,
+		},
+		{
+			phrases:    "PAC Seguro Frau 000005500832946",
+			categoryID: 85,
+		},
+		{
+			phrases:    "COMPRA PIZZA PIZZA COLON",
+			categoryID: 9,
+		},
+		{
+			phrases:    "COMPRA OK MARKET SAN PAS",
+			categoryID: 8,
+		},
+		{
+			phrases:    "COMPRA OK MARKET SUB CEN",
+			categoryID: 8,
+		},
+		{
+			phrases:    "COMPRA VIVE SNACK MOVIST",
+			categoryID: 9,
+		},
+		{
+			phrases:    "COMPRA BARBAZUL",
+			categoryID: 7,
+		},
+		{
+			phrases:    "COMPRA CASTANO LAS CONDE",
+			categoryID: 100,
+		},
+		{
+			phrases:    "COMPRA FUENTE CHILENA AP",
+			categoryID: 9,
+		},
+		{
+			phrases:    "PAGO EN LINEA VTR",
+			categoryID: 70,
+		},
+		{
+			phrases:    "PAGO EN LINEA AUTOPISTA COSTANERA NORTE",
+			categoryID: 89,
+		},
+		{
+			phrases:    "compra normal todo juegos cl",
+			categoryID: 25,
+		},
+		{
+			phrases:    "Transf otro Bco FINCIERO SPA",
+			categoryID: 6,
+		},
+		{
+			phrases:    "PAGO BELSPORT S.A. PARQUE ARAU",
+			categoryID: 13,
+		},
+		{
+			phrases:    "COPEC MAIPU 29336",
+			categoryID: 56,
+		},
+		{
+			phrases:    "JUMBO MAIPU SUPERMERCADO",
+			categoryID: 8,
+		},
+	}
 
+	good := 0
+	for _, test := range testCases {
+		best := newModel.Predict(test.phrases)
+		if best.ID != test.categoryID {
+			t.Errorf("Description: %s, has failed\n", test.phrases)
+			t.Errorf("Category: %s\n", best.Name)
+			t.Errorf("Probability: %f\n", best.Score)
+			t.Errorf(" Should best.ID be equal to %d, got %d", test.categoryID, best.ID)
+		} else {
+			good++
+		}
+		acc := 100 * (float64(good) / float64(len(testCases)))
+		fmt.Printf("\rAcc: %d/%d -> %03.2f%%", good, len(testCases), acc)
+		time.Sleep(time.Second / 4)
+	}
+	fmt.Printf("\n\n")
 	maxProcs := runtime.NumCPU()
 	log.Printf("Available CPU: %d\n", maxProcs)
 	runtime.GOMAXPROCS(maxProcs)

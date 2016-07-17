@@ -30,8 +30,8 @@ func stopWords(line string) string {
 	return stopwords.CleanString(line, "es", true)
 }
 
-// Make creates N-grams of a given string
-func Make(str string, N int, word []string) (result []string) {
+// MakeN creates N-grams of a given string
+func MakeN(str string, N int, word []string) (result []string) {
 	arr := strings.Fields("$ " + stopWords(normalize(str, word)) + " $")
 	words := len(arr)
 
@@ -48,6 +48,25 @@ func Make(str string, N int, word []string) (result []string) {
 			copy(tmp, arr[i:i+length])
 			result = append(result, strings.Join(tmp, " "))
 		}
+	}
+	return
+}
+
+// Make ...
+func Make(str string, k int, word []string) (result []string) {
+	arr := strings.Fields("$ " + stopWords(normalize(str, word)) + " $")
+	words := len(arr)
+	step := (words - k + 1)
+	length := k
+	tmp := make([]string, length)
+
+	for i := 0; i < step; i++ {
+		if len(arr[i:i+length]) == 1 && arr[i : i+length][0] == "$" {
+			continue
+		}
+
+		copy(tmp, arr[i:i+length])
+		result = append(result, strings.Join(tmp, " "))
 	}
 	return
 }

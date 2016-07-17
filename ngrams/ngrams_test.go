@@ -113,11 +113,11 @@ var testCases = []struct {
 	},
 }
 
-func TestMake(t *testing.T) {
+func TestMakeN(t *testing.T) {
 	for _, c := range testCases {
-		got := Make(c.phrases, c.count, invalidWords)
+		got := MakeN(c.phrases, c.count, invalidWords)
 		if testEq(got, c.want) != c.equal {
-			t.Errorf("Make(%q, %d) == %q, want %q", c.phrases, c.count, got, c.want)
+			t.Errorf("MakeN(%q, %d) == %q, want %q", c.phrases, c.count, got, c.want)
 		}
 	}
 }
@@ -163,4 +163,48 @@ func testEq(lhs, rhs []string) bool {
 	}
 
 	return true
+}
+
+var testCases3 = []struct {
+	phrases string
+	count   int
+	want    []string
+	equal   bool
+}{
+	{
+		phrases: "adidas parque arauco",
+		count:   1,
+		want:    []string{"adidas", "parque", "arauco"},
+		equal:   true,
+	},
+	{
+		phrases: "adidas parque arauco",
+		count:   2,
+		want: []string{
+			"$ adidas",
+			"adidas parque",
+			"parque arauco",
+			"arauco $",
+		},
+		equal: true,
+	},
+	{
+		phrases: "adidas parque arauco",
+		count:   3,
+		want: []string{
+			"$ adidas parque",
+			"adidas parque arauco",
+			"parque arauco $",
+		},
+		equal: true,
+	},
+}
+
+func TestMake(t *testing.T) {
+	for _, c := range testCases3 {
+		got := Make(c.phrases, c.count, invalidWords)
+		if testEq(got, c.want) != c.equal {
+			t.Errorf("Make(%q, %d) == %q, want %q", c.phrases, c.count, got, c.want)
+		}
+	}
 }

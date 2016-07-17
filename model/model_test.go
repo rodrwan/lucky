@@ -31,7 +31,7 @@ var testFreq = map[float64]uint{
 }
 
 func TestMaxVotes(t *testing.T) {
-	vote, _ := maxVote(testVotes)
+	vote, _ := maxVote(testVotes, 0.7)
 	expectedVote := uint(89)
 
 	if vote != expectedVote {
@@ -42,7 +42,7 @@ func TestMaxVotes(t *testing.T) {
 
 func TestBestOption(t *testing.T) {
 	expected := uint(89)
-	actual, _ := maxVote(testVotes)
+	actual, _ := maxVote(testVotes, 0.7)
 	if actual != expected {
 		t.Errorf("Freq should be %d, got %d", expected, actual)
 	}
@@ -68,7 +68,7 @@ var testFreq2 = map[float64]uint{
 }
 
 func TestMaxVotesEquals(t *testing.T) {
-	vote, _ := maxVote(testVotesEquals)
+	vote, _ := maxVote(testVotesEquals, 0.7)
 	expectedVote := uint(87)
 
 	if vote != expectedVote {
@@ -79,7 +79,7 @@ func TestMaxVotesEquals(t *testing.T) {
 
 func TestBestOptionEquals(t *testing.T) {
 	expected := uint(87)
-	actual, _ := maxVote(testVotesEquals)
+	actual, _ := maxVote(testVotesEquals, 0.7)
 	if actual != expected {
 		t.Errorf("Freq should be %d, got %d", expected, actual)
 	}
